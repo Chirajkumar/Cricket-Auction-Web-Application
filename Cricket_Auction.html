@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Auction · full screen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: #1e2b1e;  /* deep green fallback */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;           /* removed outer padding for full bleed */
+        }
+
+        /* ---------- LANDING (still card, not changed) ---------- */
+        .landing-container {
+            max-width: 1200px;
+            width: 100%;
+            background: linear-gradient(135deg, #ecdba9 0%, #d4b87a 100%);
+            border-radius: 60px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.6);
+            padding: 30px;
+            text-align: center;
+            border: 5px solid #fbc85f;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .landing-container::before {
+            content: "🏏";
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            font-size: 150px;
+            opacity: 0.1;
+            transform: rotate(-15deg);
+        }
+
+        .landing-container::after {
+            content: "🏏";
+            position: absolute;
+            bottom: -40px;
+            right: -20px;
+            font-size: 200px;
+            opacity: 0.1;
+            transform: rotate(15deg);
+        }
+
+        .banner-top {
+
+            color:black;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 50px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            width: 1100px;
+            height: 70px;
+        }
+
+        .main-title {
+            font-size: 3rem;
+            font-weight: bold;
+            color: red;
+            margin: 10px 0;
+            letter-spacing: 2px;
+            line-height: 1.2;
+        }
+
+        .sub-title {
+            font-size: 2rem;
+            color: #2c6236;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            border-bottom: 3px dashed #fbc85f;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .banner-details {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(44, 98, 54, 0.2);
+            border-radius: 80px;
+            padding: 20px 30px;
+            margin: 30px 0;
+            border: 3px solid #fbc85f;
+            backdrop-filter: blur(5px);
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 1rem;
+            color: #745e29;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #2c6236;
+            text-shadow: 2px 2px 0 #fde09e;
+        }
+
+        .auction-btn {
+            background: linear-gradient(180deg, #c2812c 0%, #9b641f 100%);
+            color: white;
+            font-size: 3rem;
+            font-weight: 900;
+            padding: 20px 80px;
+            border: none;
+            border-radius: 80px;
+            cursor: pointer;
+            box-shadow: 0 15px 0 #745e29, 0 10px 20px rgba(0,0,0,0.3);
+            transition: all 0.1s ease;
+            margin: 20px 0;
+            border: 4px solid #fbc85f;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+
+        .auction-btn:hover {
+            transform: translateY(8px);
+            box-shadow: 0 7px 0 #745e29, 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .auction-btn:active {
+            transform: translateY(15px);
+            box-shadow: 0 0 0 #745e29, 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* ---------- AUCTION PAGE – FULL SCREEN (no card boundary) ---------- */
+        .auction-container {
+            width: 100vw;           /* full viewport width */
+            min-height: 100vh;       /* full viewport height */
+            background: #ecdba9;     /* warm parchment */
+            padding: 20px 30px 30px 30px;
+            display: none;           /* hidden by default */
+            flex-direction: column;
+            overflow-y: auto;
+            border-radius: 0;         /* remove big card radius */
+            box-shadow: none;         /* remove shadow – full bleed */
+        }
+
+        /* header remains, but back button is positioned inline */
+        .auction-container h1 {
+            color: red;
+            text-align: center;
+            margin: 0 0 5px 0;
+            font-size: 2.6rem;
+            letter-spacing: 2px;
+        }
+
+        .back-btn {
+            background: #b38f40;
+            color: white;
+            padding: 8px 25px;
+            border-radius: 40px;
+            cursor: pointer;
+            border: 2px solid #ffe297;
+            font-size: 1.2rem;
+            font-weight: bold;
+            align-self: flex-start;
+            margin-bottom: 15px;
+            transition: 0.1s;
+            box-shadow: 0 4px 0 #745e29;
+        }
+        .back-btn:hover {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #745e29;
+        }
+
+        /* owner row spacing */
+        .owner-row {
+            display: flex;
+            gap: 12px;
+            margin: 5px 0 15px 0;
+            flex-wrap: wrap;         /* tiny safety, but usually fits */
+        }
+
+        .owner-box {
+            flex: 1 1 160px;
+            background: #2c6236;
+            border-radius: 30px 30px 0 0;
+            text-align: center;
+            padding: 12px 5px;
+            border: 2px solid #fbc85f;
+            color: #fde09e;
+            font-weight: 700;
+            font-size: 1.2rem;
+            min-width: 150px;
+        }
+
+        .owner-box span {
+            background: #745e29;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 5px;
+            border: 1px solid #f3cf76;
+            display: block;
+            margin-top: 6px;
+        }
+
+        /* players area – expands naturally */
+        .players-area {
+            background: #6a8557;
+            border-radius: 30px;
+            padding: 20px 20px;
+            border: 3px solid #a58642;
+            flex: 1 1 auto;           /* take remaining space */
+            max-height: none;          /* remove fixed max-height, use auto */
+            overflow-y: auto;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 0 2px #e9cf87;
+        }
+
+        .player-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: stretch;
+        }
+
+        .player-number {
+            width: 100px;
+            height: auto;
+            background: #2f4527;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #cd9f40;
+            color: #fedb81;
+            font-weight: 800;
+            font-size: 2.2rem;
+            flex-shrink: 0;
+            padding: 0 5px;
+        }
+
+        .owner-cells {
+            flex: 1;
+            display: flex;
+            gap: 12px;
+        }
+
+        .cell {
+            flex: 1;
+            background: #efdfbb;
+            border-radius: 25px;
+            padding: 12px 8px;
+            border: 2px solid #a27d3e;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-width: 0;              /* avoid overflow */
+        }
+
+        .cell.purchased {
+            background: #2d572d;
+        }
+
+        .player-name-input {
+            width: 100%;
+            padding: 8px 4px;
+            margin-bottom: 10px;
+            border-radius: 40px;
+            border: 2px solid #3d6b3d;
+            text-align: center;
+            background: #fcf5dc;
+            font-weight: 500;
+        }
+
+        .bid-input {
+            width: 100%;
+            padding: 8px 4px;
+            margin-bottom: 8px;
+            border-radius: 30px;
+            border: 2px solid #3d6b3d;
+            text-align: center;
+            background: #fcf5dc;
+        }
+
+        .bid-btn, .purchase-btn {
+            padding: 8px 0;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 6px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .bid-btn {
+            background: #277a35;
+            color: white;
+        }
+
+        .purchase-btn {
+            background: #c2812c;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .cell small {
+            color: #2c3e2c;
+            font-weight: 600;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #416d44;
+            border-radius: 60px;
+            padding: 18px 30px;
+            border: 3px solid #f6c762;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            flex-shrink: 0;
+        }
+
+        .reset {
+            background: #b38f40;
+            padding: 10px 40px;
+            border-radius: 50px;
+            cursor: pointer;
+            border: 2px solid #ffe297;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: 0.1s;
+            box-shadow: 0 4px 0 #6b4f29;
+        }
+        .reset:hover {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #6b4f29;
+        }
+
+        #globalMsg {
+            background: #2c4b2c;
+            padding: 8px 30px;
+            border-radius: 40px;
+            border: 1px solid #e9c15c;
+        }
+
+        /* make it nice on smaller screens */
+        @media (max-width: 1100px) {
+            .owner-cells {
+                flex-wrap: wrap;
+            }
+            .cell {
+                min-width: 140px;
+            }
+            .player-row {
+                flex-wrap: wrap;
+            }
+            .player-number {
+                width: 80px;
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LANDING PAGE (unchanged card) -->
+    <div class="landing-container" id="landingPage">
+        <img src="D:\1648197861234.jpg.jpeg" alt="Cricket Icon" style="width:100px; position:absolute; top:50px; left:40px; border-radius: 50px;">
+        <img src="D:\1648197861234.jpg.jpeg" alt="Cricket Icon" style="width:100px; position:absolute; top:50px; right:60px; border-radius: 50px; ">
+        <div class="banner-top">NAMO FRIENDS KENJILA</div>
+        <div class="main-title">🏏 KENJILA PREMIER LEAGUE 🏏</div>
+        <div class="sub-title">AUCTION 2026</div>
+
+        <div class="banner-details">
+            <div class="detail-item">
+                <div class="detail-label">OWNERS</div>
+                <div class="detail-value">5</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">PLAYERS PER TEAM</div>
+                <div class="detail-value">10</div>
+            </div>
+        </div>
+
+        <button class="auction-btn" onclick="showAuction()">AUCTION</button>
+    </div>
+
+    <!-- AUCTION PAGE – FULL SCREEN (no card boundaries) -->
+    <div class="auction-container" id="auctionPage">
+     <img src="D:\1648197861234.jpg.jpeg" alt="Cricket Icon" style="width:80px; position:absolute; top:8px; left:400px; border-radius: 50px;">
+     <img src="D:\1648197861234.jpg.jpeg" alt="Cricket Icon" style="width:80px; position:absolute; top:8px; right:400px; border-radius: 50px; ">
+      
+        <h1>NAMO FRIENDS KENJILA</h1>
+
+        <div class="owner-row">
+            <div class="owner-box">OWNER 1 <span id="bal1">15000</span><span id="avg1">Max Bid: 8000</span></div>
+            <div class="owner-box">OWNER 2 <span id="bal2">15000</span><span id="avg2">Max Bid: 8000</span></div>
+            <div class="owner-box">OWNER 3 <span id="bal3">15000</span><span id="avg3">Max Bid: 8000</span></div>
+            <div class="owner-box">OWNER 4 <span id="bal4">15000</span><span id="avg4">Max Bid: 8000</span></div>
+            <div class="owner-box">OWNER 5 <span id="bal5">15000</span><span id="avg5">Max Bid: 8000</span></div>
+        </div>
+
+        <!-- players injected -->
+        <div class="players-area" id="playersContainer"></div>
+
+        <div class="footer">
+            <div id="globalMsg">✨ Enter name → Bid → Purchase</div>
+            <div id="purchasedDisplay">0/50 purchases</div>
+              <button class="back-btn" onclick="showLanding()">← BACK</button>
+            <button class="reset" id="resetBtn">RESET</button>
+        </div>
+    </div>
+
+    <script>
+        // landing/auction toggles
+        function showAuction() {
+            document.getElementById('landingPage').style.display = 'none';
+            const auctionPage = document.getElementById('auctionPage');
+            auctionPage.style.display = 'flex';   // flex because container uses column
+            // ensure render is called
+            if (typeof render === 'function') {
+                render();
+            } else {
+                // fallback if render not yet defined (but it is)
+                location.reload(); 
+            }
+        }
+
+        function showLanding() {
+            document.getElementById('auctionPage').style.display = 'none';
+            document.getElementById('landingPage').style.display = 'block';
+        }
+
+        // ---------- Auction core (mostly original, tweaked for fullscreen) ----------
+        (function() {
+            const TOTAL_PLAYERS = 10;
+            const OWNER_COUNT = 5;
+            const BASE_PRICE = 600;
+            const MAX_BID = 8000;
+            const OWNER_BUDGET = 15000;
+
+            let owners = Array.from({ length: OWNER_COUNT }, (_, i) => ({
+                id: i + 1,
+                balance: OWNER_BUDGET
+            }));
+
+            let players = Array.from({ length: TOTAL_PLAYERS }, (_, i) => ({
+                id: i,
+                number: i + 1,
+                ownerBids: {},
+                ownerPurchased: {},
+                ownerPlayerName: {}
+            }));
+
+            function remainingPlayers(ownerId) {
+                return players.filter(p => !p.ownerPurchased[ownerId]).length;
+            }
+
+            function calculateMaxBid(ownerId) {
+                let owner = owners[ownerId - 1];
+                let remaining = remainingPlayers(ownerId);
+                if (remaining === 0) return 0;
+
+                let playersBought = 10 - remaining;
+                let remainingBudget = owner.balance;
+
+                if (playersBought < 5) {
+                    let maxForFirstFive = MAX_BID;
+                    let minRequiredForRest = (remaining - 1) * BASE_PRICE;
+                    let affordableMax = remainingBudget - minRequiredForRest;
+                    return Math.min(maxForFirstFive, affordableMax, remainingBudget);
+                } else {
+                    return Math.min(Math.floor(remainingBudget / remaining), MAX_BID, remainingBudget);
+                }
+            }
+
+            function updateHeaders() {
+                for (let i = 1; i <= OWNER_COUNT; i++) {
+                    let balance = owners[i - 1].balance;
+                    let maxBid = calculateMaxBid(i);
+                    document.getElementById("bal" + i).innerText = balance;
+                    document.getElementById("avg" + i).innerText = "Max Bid: " + maxBid;
+                }
+            }
+
+            function totalPurchases() {
+                let c = 0;
+                players.forEach(p => {
+                    for (let o = 1; o <= OWNER_COUNT; o++) {
+                        if (p.ownerPurchased[o]) c++;
+                    }
+                });
+                return c;
+            }
+
+            function placeBid(playerId, ownerId, bid) {
+                let owner = owners[ownerId - 1];
+                let maxAllowedBid = calculateMaxBid(ownerId);
+                if (bid < BASE_PRICE) return { success: false, msg: "Minimum bid is ₹" + BASE_PRICE };
+                if (bid > owner.balance) return { success: false, msg: "Cannot exceed balance ₹" + owner.balance };
+                if (bid > maxAllowedBid) return { success: false, msg: "Max allowed bid is ₹" + maxAllowedBid };
+
+                players[playerId].ownerBids[ownerId] = bid;
+                return { success: true, msg: "Bid placed for ₹" + bid };
+            }
+
+            function purchase(playerId, ownerId) {
+                let player = players[playerId];
+                let owner = owners[ownerId - 1];
+                let bid = player.ownerBids[ownerId];
+                if (!bid) return { success: false, msg: "No bid placed yet" };
+                if (owner.balance < bid) return { success: false, msg: "Insufficient balance" };
+
+                owner.balance -= bid;
+                player.ownerPurchased[ownerId] = true;
+                // after purchase, maxBid recalc happens via render()
+                return { success: true, msg: "✅ Player purchased for ₹" + bid };
+            }
+
+            function render() {
+                let html = "";
+                players.forEach(p => {
+                    html += `<div class="player-row">
+                        <div class="player-number">${p.number}</div>
+                        <div class="owner-cells">`;
+
+                    for (let o = 1; o <= OWNER_COUNT; o++) {
+                        let purchased = p.ownerPurchased[o];
+                        let maxBid = calculateMaxBid(o);
+                        let remaining = remainingPlayers(o);
+
+                        html += `<div class="cell ${purchased ? 'purchased' : ''}">`;
+
+                        let name = p.ownerPlayerName[o] || "";
+                        html += `<input class="player-name-input" data-p="${p.id}" data-o="${o}" value="${name}" ${purchased ? 'disabled' : ''} placeholder="Player name">`;
+
+                        if (!purchased) {
+                            let prev = p.ownerBids[o] || BASE_PRICE;
+                            let currentBidValue = Math.min(prev, maxBid);
+                            if (prev > maxBid) {
+                                p.ownerBids[o] = null;
+                                currentBidValue = BASE_PRICE;
+                            }
+                            html += `<input type="number" class="bid-input" id="bid_${p.id}_${o}" min="${BASE_PRICE}" max="${maxBid}" value="${currentBidValue}">`;
+                            html += `<button class="bid-btn" data-p="${p.id}" data-o="${o}">BID</button>`;
+
+                            if (p.ownerBids[o]) {
+                                html += `<button class="purchase-btn" data-p="${p.id}" data-o="${o}">PURCHASE</button>`;
+                            }
+
+                            html += `<small style="color:#222; font-size:0.7rem;">${remaining} left</small>`;
+                        } else {
+                            html += `<div style="color:white; font-weight:bold; background:#2f4527; padding:4px; border-radius:40px;">₹${p.ownerBids[o]}</div>`;
+                        }
+
+                        html += `</div>`;
+                    }
+
+                    html += `</div></div>`;
+                });
+
+                document.getElementById("playersContainer").innerHTML = html;
+                updateHeaders();
+                document.getElementById("purchasedDisplay").innerText =
+                    totalPurchases() + "/" + (TOTAL_PLAYERS * OWNER_COUNT) + " purchases";
+
+                // Attach events
+                document.querySelectorAll(".player-name-input").forEach(i => {
+                    i.onchange = e => {
+                        players[e.target.dataset.p].ownerPlayerName[e.target.dataset.o] = e.target.value;
+                    };
+                });
+
+                document.querySelectorAll(".bid-btn").forEach(b => {
+                    b.onclick = () => {
+                        let p = b.dataset.p;
+                        let o = b.dataset.o;
+                        let val = parseInt(document.getElementById("bid_" + p + "_" + o).value);
+                        if (isNaN(val)) val = BASE_PRICE;
+                        let r = placeBid(p, o, val);
+                        document.getElementById("globalMsg").innerText = r.msg;
+                        render();
+                    };
+                });
+
+                document.querySelectorAll(".purchase-btn").forEach(b => {
+                    b.onclick = () => {
+                        let r = purchase(b.dataset.p, b.dataset.o);
+                        document.getElementById("globalMsg").innerText = r.msg;
+                        render();
+                    };
+                });
+
+                // reset button inside footer (already exists, but reassign)
+                document.getElementById("resetBtn").onclick = () => {
+                    owners.forEach(o => o.balance = OWNER_BUDGET);
+                    players.forEach(p => {
+                        p.ownerBids = {};
+                        p.ownerPurchased = {};
+                        p.ownerPlayerName = {};
+                    });
+                    render();
+                    document.getElementById("globalMsg").innerText = "♻️ Reset complete – Enter name → Bid → Purchase";
+                };
+            }
+
+            // expose render globally for toggle
+            window.render = render;
+
+            // initial render (if auction visible by default? no, hidden)
+            // but we call after showAuction
+            // Also attach to window.showAuction already defined, but we override to include render
+            const originalShow = window.showAuction;
+            window.showAuction = function() {
+                document.getElementById('landingPage').style.display = 'none';
+                const ap = document.getElementById('auctionPage');
+                ap.style.display = 'flex';
+                render();
+            };
+
+            window.showLanding = function() {
+                document.getElementById('auctionPage').style.display = 'none';
+                document.getElementById('landingPage').style.display = 'block';
+            };
+
+            // ensure reset works even if called before auction
+            render(); // silently prepares variables; auction container hidden but fine
+        })();
+    </script>
+    
+</body>
+</html>
